@@ -1,0 +1,99 @@
+{
+  "Wemba": {
+    "purpose": "Team-based server request handling with real-time claiming",
+    "roles": {
+      "customer": {
+        "actions": [
+          "submitServerRequest",
+          "chooseServerType",
+          "chooseProtocol"
+        ]
+      },
+      "teamMember": {
+        "actions": [
+          "receiveNotification",
+          "viewJobCard",
+          "claimJob"
+        ]
+      }
+    },
+    "frontend": {
+      "framework": "Vite + React + TypeScript",
+      "pages": {
+        "customerRequestForm": {
+          "fields": ["serverType", "protocol", "description"],
+          "sendsEvent": "REQUEST_JOB"
+        },
+        "teamDashboard": {
+          "features": [
+            "realTimeJobFeed",
+            "browserNotifications",
+            "claimButton",
+            "jobRemovalOnClaim"
+          ],
+          "receivesEvents": ["NEW_JOB", "JOB_CLAIMED"]
+        }
+      }
+    },
+    "backend": {
+      "type": "WebSocketServer",
+      "language": "Node + TypeScript (ESM)",
+      "state": {
+        "currentJob": "object|null",
+        "jobLocked": "boolean"
+      },
+      "events": {
+        "REQUEST_JOB": {
+          "description": "Customer submits a job",
+          "serverAction": "broadcast NEW_JOB to all team dashboards"
+        },
+        "CLAIM_JOB": {
+          "description": "Team member claims the job",
+          "serverAction": [
+            "atomicLock",
+            "broadcast JOB_CLAIMED",
+            "clear currentJob"
+          ]
+        }
+      }
+    },
+    "realtimeFlow": [
+      "Customer submits job",
+      "Backend broadcasts NEW_JOB",
+      "All team dashboards show job",
+      "First team member clicks claim",
+      "Backend locks job",
+      "Backend broadcasts JOB_CLAIMED",
+      "All dashboards remove job"
+    ],
+    "repos": {
+      "public": {
+        "name": "wemba-team.github.io",
+        "purpose": "public website",
+        "contains": [
+          "frontend code",
+          "routes",
+          "auth page",
+          "team page",
+          "no secrets"
+        ]
+      },
+      "private": {
+        "name": "wemba-private",
+        "purpose": "hidden secure data",
+        "contains": [
+          ".wemba/accounts.json",
+          ".wemba/config.json",
+          "environment secrets"
+        ],
+        "visibility": "private"
+      }
+    },
+    "auth": {
+      "login": true,
+      "signup": false,
+      "accountCreation": "adminOnly",
+      "accountStorage": "privateRepo/.wemba/accounts.json"
+    }
+  }
+}
